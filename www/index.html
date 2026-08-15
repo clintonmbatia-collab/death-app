@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#020202">
+<meta name="color-scheme" content="dark">
+<title>DEATH</title>
+<style>
+:root{
+  --bg:#020202;--panel:#080808;--panel2:#0d0d0d;--text:#efefef;--muted:#8b8b8b;
+  --line:#171717;--red:#e31324;--red2:#65050c;--amber:#c9ad61;--green:#56dd9d;
+  --shadow:0 30px 110px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+body{overflow-x:hidden}
+button,input,select{font:inherit}
+button{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+img,video{display:block;max-width:100%}
+.no-scroll{overflow:hidden}
+::selection{background:rgba(227,19,36,.45);color:#fff}
+
+/* ---------- cinematic / analog texture ---------- */
+.crt-lines,.film-grain,.signal-layer,.red-flash,.cctv-vignette{
+  position:fixed;inset:0;pointer-events:none
+}
+.crt-lines{z-index:9996;opacity:.28;background:repeating-linear-gradient(to bottom,transparent 0 3px,rgba(255,255,255,.035) 4px,transparent 5px)}
+.film-grain{z-index:9995;opacity:.045;background-image:radial-gradient(rgba(255,255,255,.7) .45px,transparent .6px);background-size:4px 4px;animation:grain .14s steps(2) infinite}
+.cctv-vignette{z-index:9994;background:radial-gradient(circle at center,transparent 44%,rgba(0,0,0,.58) 100%)}
+.signal-layer{z-index:9998;display:none;opacity:0;background:
+  repeating-linear-gradient(to bottom,rgba(255,255,255,.12) 0 1px,transparent 1px 5px),
+  linear-gradient(90deg,transparent 0 18%,rgba(227,19,36,.12) 20%,transparent 23%);
+  mix-blend-mode:screen
+}
+.signal-layer.active{display:block;animation:signal .24s steps(2) 2}
+.red-flash{z-index:9997;opacity:0;background:rgba(227,19,36,.12)}
+.red-flash.active{animation:redFlash .34s ease 1}
+body.shake{animation:shake .14s steps(2) 1}
+@keyframes grain{0%{transform:translate(0,0)}25%{transform:translate(-1%,1%)}50%{transform:translate(1%,-1%)}75%{transform:translate(1%,1%)}100%{transform:translate(0,0)}}
+@keyframes signal{0%{opacity:0;transform:translateX(0)}25%{opacity:.7;transform:translateX(-3px)}45%{opacity:.15;transform:translateX(5px)}70%{opacity:.8;transform:translateX(-1px)}100%{opacity:0;transform:translateX(0)}}
+@keyframes redFlash{0%,100%{opacity:0}35%{opacity:1}70%{opacity:.2}}
+@keyframes shake{0%{transform:translate(0)}25%{transform:translate(-2px,1px)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px)}100%{transform:translate(0)}}
+@media(prefers-reduced-motion:reduce){.film-grain{animation:none}.signal-layer,.red-flash,body.shake{animation:none!important}}
+
+/* ---------- chrome ---------- */
+.top{position:sticky;top:0;z-index:40;height:64px;background:rgba(2,2,2,.84);backdrop-filter:blur(18px);border-bottom:1px solid #101010;display:flex;align-items:center;justify-content:space-between;padding:0 15px}
+.logo{font-weight:950;letter-spacing:.31em;font-size:15px}.logo b{color:var(--red)}
+.top-actions{display:flex;gap:7px;align-items:center}
+.btn{border:1px solid #202020;background:#0d0d0d;color:#fff;border-radius:999px;padding:10px 14px;font-weight:850;transition:.18s}
+.btn:hover{background:#141414;transform:translateY(-1px)}
+.btn.primary{background:var(--red);border-color:transparent}.btn.primary:hover{background:#c70f1d}
+.icon{width:39px;height:39px;padding:0;display:grid;place-items:center}
+.pill{position:fixed;right:11px;top:75px;z-index:45;display:flex;align-items:center;gap:7px;background:rgba(9,9,9,.9);border:1px solid #1b1b1b;border-radius:999px;padding:7px 10px;font:9px ui-monospace,SFMono-Regular,Menlo,monospace;color:#8e8e8e;letter-spacing:.09em}
+.pill .live-dot{width:5px;height:5px;border-radius:50%;background:#555}.pill.live .live-dot{background:var(--red);box-shadow:0 0 9px var(--red)}
+.pill button{background:none;border:0;color:#fff;padding:0}
+
+.page{width:100%;max-width:1180px;margin:auto;padding:14px 15px 120px}
+.archive-strip{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 2px 10px;min-width:0;overflow:hidden}
+.archive-mono{font:9px ui-monospace,SFMono-Regular,Menlo,monospace;color:#6e6e6e;letter-spacing:.12em;white-space:nowrap}
+.archive-depth{color:#b3b3b3}
+.archive-depth strong{color:#fff}
+.archive-corrupt{color:var(--red)!important;text-shadow:1px 0 rgba(255,0,0,.5),-1px 0 rgba(0,150,255,.25)}
+.anomaly-text{min-height:13px;font:9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.12em;color:#666;text-transform:uppercase}
+
+.hero{position:relative;min-height:67vh;border:1px solid #181818;border-radius:27px;overflow:hidden;background:#050505;display:flex;align-items:flex-end;padding:30px;box-shadow:var(--shadow)}
+.hero-media{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.38;filter:brightness(.48) saturate(.72)}
+.hero-shade{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.98),rgba(0,0,0,.08) 62%,rgba(0,0,0,.52))}
+.hero-scan{position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0 5px,rgba(255,255,255,.03) 6px,transparent 7px)}
+.hero-content{position:relative;z-index:2;max-width:720px}
+.eyebrow{font:950 10px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.21em;color:#ff6570;text-transform:uppercase}
+.hero h1{font-size:clamp(52px,12vw,112px);line-height:.82;letter-spacing:-.07em;margin:8px 0 16px}
+.hero p{color:#aaa;line-height:1.65;max-width:630px}
+.hero-meta{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0}.badge{border:1px solid #292929;background:rgba(8,8,8,.78);padding:6px 9px;border-radius:999px;font:9px ui-monospace,SFMono-Regular,Menlo,monospace;color:#aaa;letter-spacing:.08em}
+.badge.red{border-color:#541017;color:#ff7c84;background:#18080a}
+
+.story-line{display:flex;gap:8px;align-items:center;margin:14px 0;padding:10px 12px;border:1px solid #181818;border-radius:15px;background:linear-gradient(90deg,#090909,#080405)}
+.story-dot{width:6px;height:6px;border-radius:50%;background:#555;flex:0 0 auto}.story-line.live .story-dot{background:var(--red);box-shadow:0 0 10px var(--red)}
+.story-copy{font:10px ui-monospace,SFMono-Regular,Menlo,monospace;color:#777;letter-spacing:.1em}
+.story-copy b{color:#ddd}
+
+.searchbar{display:flex;gap:7px;margin:16px 0 9px}
+.search{width:100%;min-width:0;background:#090909;border:1px solid #1a1a1a;color:#fff;border-radius:15px;padding:14px 15px;outline:none}
+.search:focus{border-color:#5e1118;box-shadow:0 0 0 3px rgba(227,19,36,.08)}
+.filters{display:flex;gap:7px;overflow:auto;scrollbar-width:none;padding-bottom:2px}.filters::-webkit-scrollbar{display:none}
+.chip{white-space:nowrap;border:1px solid #181818;background:#090909;color:#888;border-radius:999px;padding:8px 11px;font-size:10px}
+.chip.active{color:#fff;border-color:#62131a;background:#19080b}
+
+.section-head{display:flex;justify-content:space-between;align-items:end;gap:10px;margin:27px 0 11px}.section-head h2{margin:0;font-size:20px}.section-head p{margin:4px 0 0;color:#6e6e6e;font-size:10px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(min-width:720px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1040px){.grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.card{position:relative;min-height:255px;border:1px solid #181818;border-radius:19px;overflow:hidden;background:#090909;cursor:pointer;transition:.22s transform,.22s border-color,.22s filter}
+.card:hover{transform:translateY(-4px);border-color:#353535}
+.card-visual{position:relative;min-height:255px;background:radial-gradient(circle at 70% 20%,rgba(227,19,36,.16),transparent 25%),linear-gradient(145deg,#191919,#070707)}
+.card img{width:100%;height:255px;object-fit:cover;filter:saturate(.76) contrast(1.05)}
+.card-fog{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.97),rgba(0,0,0,.05) 68%)}
+.card-vhs{position:absolute;inset:0;background:repeating-linear-gradient(to bottom,transparent 0 5px,rgba(255,255,255,.025) 6px,transparent 7px);mix-blend-mode:screen}
+.card-status{position:absolute;top:9px;left:9px;z-index:2;display:flex;gap:5px;flex-wrap:wrap}
+.card-body{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:13px}
+.card-tag{font:950 9px ui-monospace,SFMono-Regular,Menlo,monospace;color:#ff6570;letter-spacing:.14em}
+.card h3{margin:5px 0;font-size:16px}.card p{margin:0;color:#aaa;font-size:11px;line-height:1.45}
+.card-meta{display:flex;align-items:center;justify-content:space-between;gap:7px;margin-top:9px;color:#777;font:9px ui-monospace,SFMono-Regular,Menlo,monospace}
+.save-mini{border:1px solid #272727;background:rgba(8,8,8,.8);color:#fff;border-radius:999px;padding:5px 8px}
+.save-mini.saved{color:#ff6c76;border-color:#4c0f16}
+
+.recovered{
+  margin-top:11px;border:1px dashed #252525;border-radius:16px;padding:11px;
+  font:9px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace;color:#747474
+}
+.recovered strong{color:#aaa}.redaction{display:inline-block;min-width:60px;background:#191919;color:#191919;padding:0 3px;border-radius:2px;vertical-align:middle}
+
+.empty{padding:55px 18px;text-align:center;border:1px dashed #202020;border-radius:20px}.empty h3{margin:10px 0}.empty p{color:#777;line-height:1.55;max-width:500px;margin:auto}
+
+.nav{position:fixed;left:50%;bottom:9px;transform:translateX(-50%);z-index:60;width:min(720px,calc(100% - 18px));display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;border:1px solid #1b1b1b;border-radius:23px;background:rgba(9,9,9,.91);backdrop-filter:blur(17px);box-shadow:0 18px 60px rgba(0,0,0,.5)}
+.nav button{border:0;background:transparent;color:#707070;border-radius:16px;padding:9px 3px;font-size:9px}.nav button.active{background:#161616;color:#fff}.nav b{display:block;font-weight:850;margin-top:3px}
+
+.empty-archive{padding:30px;border:1px solid #1a1a1a;border-radius:18px;background:#080808}
+.archive-row{display:flex;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid #141414}.archive-row:last-child{border-bottom:0}
+.archive-row .file{font:10px ui-monospace,SFMono-Regular,Menlo,monospace;color:#aaa;flex:1}.archive-row .status{font:9px ui-monospace,SFMono-Regular,Menlo,monospace;color:#666}
+
+.modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.9);backdrop-filter:blur(16px);display:grid;place-items:end center;padding:7px}
+.modalbox{width:min(860px,100%);max-height:95vh;overflow:auto;background:#070707;border:1px solid #222;border-radius:25px 25px 12px 12px;padding:13px;box-shadow:0 30px 110px rgba(0,0,0,.75);-webkit-overflow-scrolling:touch}
+.modal-top{display:flex;justify-content:space-between;align-items:center;gap:10px;position:sticky;top:0;z-index:5;background:rgba(7,7,7,.9);backdrop-filter:blur(10px);padding-bottom:8px}
+.close{width:40px;height:40px;border:0;background:#151515;color:#fff;border-radius:11px}
+.modal-media{border:1px solid #171717;border-radius:18px;overflow:hidden;background:#000;margin-top:5px}
+.modal-media video,.modal-media img{width:100%;max-height:58vh;object-fit:contain;background:#000}
+.modal-progress{height:3px;border-radius:99px;overflow:hidden;background:#171717;margin-top:7px}.modal-progress b{display:block;width:0;height:100%;background:var(--red)}
+.modal-copy{color:#aaa;line-height:1.7;font-size:13px;margin:13px 0}
+.detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.detail{border:1px solid #171717;background:#0a0a0a;border-radius:14px;padding:11px}.detail strong{display:block;font:850 10px ui-monospace,SFMono-Regular,Menlo,monospace;color:#bbb}.detail span{display:block;color:#666;font-size:10px;margin-top:4px}
+.warning{padding:12px;border:1px solid #493d18;background:#161209;border-radius:14px;color:#d0b66d;font-size:11px;line-height:1.5;margin:11px 0}
+.decode{padding:25px 8px;text-align:center;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:#777}.decode strong{display:block;color:#fff;margin-top:9px}
+.progress-copy{font:9px ui-monospace,SFMono-Regular,Menlo,monospace;color:#666;margin-top:5px}
+.corrupt-note{font:9px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--red);letter-spacing:.12em;margin:8px 0}
+
+.settings-card{border:1px solid #181818;border-radius:18px;background:#090909;padding:15px;margin-top:12px}
+.settings-card h3{margin:0 0 6px}.settings-card p{color:#777;font-size:11px;line-height:1.5}
+.row{display:flex;flex-wrap:wrap;gap:7px}
+.status-chip{border:1px solid #222;background:#0b0b0b;color:#777;border-radius:999px;padding:6px 9px;font:9px ui-monospace,SFMono-Regular,Menlo,monospace}
+
+.depth-4 .card:nth-child(4n){filter:contrast(1.06)}
+.depth-5 .card:nth-child(5n){transform:translateX(.5px)}
+.depth-6 .card:nth-child(3n){filter:brightness(.93) contrast(1.08)}
+.depth-7 .card:nth-child(2n){filter:saturate(.62) contrast(1.1)}
+
+@media(max-width:620px){
+  .top{padding:0 10px}.logo{font-size:13px}.top-actions .hide-mobile{display:none}
+  .page{padding:9px 10px 115px}.hero{min-height:67vh;padding:22px;border-radius:22px}
+  .hero h1{font-size:clamp(48px,17vw,76px)}.hero p{font-size:12px}
+  .grid{gap:8px}.card{min-height:220px}.card-visual,.card img{height:220px;min-height:220px}
+  .detail-grid{grid-template-columns:1fr}.modal{padding:5px}.modalbox{max-height:96vh;border-radius:21px}
+  .modal-media video,.modal-media img{max-height:48vh}
+  .archive-strip{gap:5px}.archive-strip .hide-mobile{display:none}
+}
+@media(max-width:380px){.hero{min-height:64vh}.hero-meta{display:none}.btn{padding:9px 11px}.nav button{font-size:8px}}
+
+.death-loader{position:fixed;inset:0;z-index:10000;background:#000;color:#eee;display:grid;place-items:center;overflow:hidden;transition:opacity .55s ease,visibility .55s ease}
+.death-loader.is-gone{opacity:0;visibility:hidden;pointer-events:none}
+.loader-space{position:absolute;inset:0;background:radial-gradient(circle at 50% 52%,rgba(70,70,70,.06),transparent 32%),radial-gradient(circle at 20% 30%,rgba(255,255,255,.08) 0 1px,transparent 1.5px),radial-gradient(circle at 80% 20%,rgba(255,255,255,.06) 0 1px,transparent 1.5px),radial-gradient(circle at 65% 78%,rgba(255,255,255,.07) 0 1px,transparent 1.5px);background-size:auto,170px 150px,230px 190px,280px 220px;animation:loaderDrift 12s linear infinite}
+.loader-vignette{position:absolute;inset:0;background:radial-gradient(circle,transparent 35%,rgba(0,0,0,.8) 100%)}
+.loader-content{position:relative;z-index:2;width:min(560px,calc(100% - 40px));font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+.loader-kervyra{font-size:9px;letter-spacing:.32em;color:#707070;margin-bottom:15px}
+.loader-code{font-size:10px;letter-spacing:.18em;color:#aaa;margin-bottom:28px}
+.loader-status{font-size:13px;letter-spacing:.12em;color:#e9e9e9;min-height:20px}
+.loader-data{font-size:9px;letter-spacing:.12em;color:#666;margin-top:10px;min-height:16px}
+.loader-progress{height:2px;background:#171717;margin-top:18px;overflow:hidden}.loader-progress b{display:block;width:0;height:100%;background:#e31324;transition:width .18s linear}
+.loader-percent{font-size:9px;color:#777;margin-top:7px;text-align:right}
+.loader-quote{position:absolute;left:50%;bottom:15%;transform:translateX(-50%);width:min(600px,calc(100% - 40px));text-align:center;z-index:3;font-size:clamp(12px,2vw,17px);line-height:1.75;letter-spacing:.08em;color:#b7b7b7;opacity:0;transition:opacity .45s ease}.loader-quote.show{opacity:1}.loader-quote em{display:block;color:#fff;font-style:normal}
+@keyframes loaderDrift{from{transform:scale(1)}to{transform:scale(1.04) translate3d(0,-1%,0)}} 
+@media(max-width:620px){.loader-code{font-size:9px}.loader-status{font-size:11px}.loader-quote{bottom:13%;font-size:12px}}
+
+</style>
+</head>
+<body>
+<div class="crt-lines" aria-hidden="true"></div>
+<div class="film-grain" aria-hidden="true"></div>
+<div class="cctv-vignette" aria-hidden="true"></div>
+<div class="signal-layer" id="signalLayer" aria-hidden="true"></div>
+<div class="red-flash" id="redFlash" aria-hidden="true"></div>
+
+
+<div id="deathLoader" class="death-loader" aria-hidden="true">
+  <div class="loader-space" id="loaderSpace"></div>
+  <div class="loader-vignette"></div>
+  <div class="loader-content">
+    <div class="loader-kervyra">KERVYRA STUDIOS</div>
+    <div class="loader-code">DEATH // FORBIDDEN ARCHIVE</div>
+    <div class="loader-status" id="loaderStatus">SEARCHING THE KNOWN UNIVERSE...</div>
+    <div class="loader-data" id="loaderData">KNOWN DATA ................. SCANNING</div>
+    <div class="loader-progress"><b id="loaderProgress"></b></div>
+    <div class="loader-percent" id="loaderPercent">00%</div>
+  </div>
+  <div class="loader-quote" id="loaderQuote"></div>
+</div>
+
+<div id="app"></div>
+<div class="pill" id="audioPill"><span class="live-dot"></span><span id="audioLabel">DEATH AUDIO OFF</span><button id="mute" aria-label="Toggle DEATH soundtrack">🔇</button></div>
+
+<nav class="nav" aria-label="Primary">
+  <button data-v="home" class="active">◉<b>Discover</b></button>
+  <button data-v="archive">▣<b>Archive</b></button>
+  <button data-v="saved">♡<b>Saved</b></button>
+  <button data-v="settings">⚙<b>Settings</b></button>
+</nav>
+
+<script>
+"use strict";
+
+const app=document.getElementById("app");
+const signalLayer=document.getElementById("signalLayer");
+const redFlash=document.getElementById("redFlash");
+const audioPill=document.getElementById("audioPill");
+const audioLabel=document.getElementById("audioLabel");
+const mute=document.getElementById("mute");
+
+const KEYS={
+  saved:"death_saved",
+  viewed:"death_viewed",
+  audio:"death_audio",
+  resume:"death_resume",
+  depth:"death_depth",
+  known:"death_known_posts",
+  filter:"death_filter"
+};
+
+const DEPTH_NAMES=[
+  "NORMAL ARCHIVE",
+  "SUBTLE DISTURBANCE",
+  "INTERFERENCE",
+  "SIGNAL DEGRADATION",
+  "UNSTABLE INTERFACE",
+  "RESTRICTED",
+  "DEEP / UNKNOWN"
+];
+
+const ANOMALIES=[
+  "SIGNAL DETECTED",
+  "USER ACTIVITY DETECTED",
+  "FILE STATUS: CORRUPTED",
+  "ARCHIVE INTEGRITY: UNCERTAIN",
+  "SOURCE UNKNOWN",
+  "NEW DISCOVERY DETECTED",
+  "DECODING RECOVERED DATA",
+  "SIGNAL LOSS // RECONNECTING"
+];
+
+let state={
+  view:"home",q:"",cat:load(KEYS.filter,"All"),posts:[],
+  saved:load(KEYS.saved,[]),viewed:load(KEYS.viewed,[]),
+  audio:load(KEYS.audio,false),depth:clamp(Number(load(KEYS.depth,1)),1,7),
+  currentId:null,currentVideo:null,modal:null
+};
+
+function clamp(n,a,b){return Math.max(a,Math.min(b,n))}
+function load(k,d){try{const x=localStorage.getItem(k);return x===null?d:JSON.parse(x)}catch{return d}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+function esc(s=""){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
+function nowStamp(){
+  const d=new Date(),p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+function fileCode(id){
+  const s=String(id||"").replace(/-/g,"").toUpperCase();
+  let n=0;for(let i=0;i<s.length;i++)n=(n*31+s.charCodeAt(i))>>>0;
+  return String(n%99999+1).padStart(5,"0");
+}
+function depthName(){return DEPTH_NAMES[state.depth-1]}
+function setDepth(n){
+  const d=clamp(n,1,7);
+  if(d!==state.depth){
+    state.depth=d;save(KEYS.depth,d);
+    document.body.classList.remove(...[1,2,3,4,5,6,7].map(x=>"depth-"+x));
+    document.body.classList.add("depth-"+d);
+    if(d>=4)signal("ARCHIVE DEPTH: "+String(d).padStart(2,"0"));
+  }
+}
+function advanceDepth(reason=""){
+  const viewed=state.viewed.length;
+  const known=Number(load("death_depth_events",0))+1;
+  save("death_depth_events",known);
+  let bump=false;
+  if(state.depth===1&&(viewed>=2||known>=5))bump=true;
+  if(state.depth===2&&(viewed>=4||known>=10))bump=true;
+  if(state.depth===3&&(viewed>=6||known>=16))bump=true;
+  if(state.depth===4&&(viewed>=9||known>=24))bump=true;
+  if(state.depth===5&&(viewed>=12||known>=32))bump=true;
+  if(state.depth===6&&(viewed>=16||known>=42))bump=true;
+  if(bump)setDepth(state.depth+1);
+}
+function filtered(){
+  let a=state.posts.slice();
+  if(state.view==="saved")a=a.filter(p=>state.saved.includes(p.id));
+  if(state.cat!=="All")a=a.filter(p=>p.category===state.cat);
+  if(state.q){
+    const q=state.q.toLowerCase();
+    a=a.filter(p=>(p.title+" "+p.description+" "+p.category).toLowerCase().includes(q));
+  }
+  return a;
+}
+function setView(v){closeAnyModal();state.view=v;state.q="";render();window.scrollTo(0,0);if(v==="archive")advanceDepth("archive")}
+
+function signal(message){
+  const label=document.getElementById("anomalyLabel");
+  if(label){
+    label.textContent=message+" // "+nowStamp();
+    label.classList.remove("archive-corrupt");
+    void label.offsetWidth;
+    label.classList.add("archive-corrupt");
+    setTimeout(()=>{if(label)label.classList.remove("archive-corrupt")},900);
+  }
+  if(Math.random()<.7){
+    signalLayer.classList.remove("active");void signalLayer.offsetWidth;signalLayer.classList.add("active");
+  }
+  if(Math.random()<.22){
+    redFlash.classList.remove("active");void redFlash.offsetWidth;redFlash.classList.add("active");
+  }
+  if(state.depth>=5&&Math.random()<.16){
+    document.body.classList.add("shake");setTimeout(()=>document.body.classList.remove("shake"),170);
+  }
+}
+
+function rareEvent(){
+  if(document.hidden){setTimeout(rareEvent,12000);return}
+  const probabilities=[.03,.06,.10,.13,.17,.21,.26];
+  const p=probabilities[state.depth-1]||.06;
+  if(Math.random()<p){
+    const candidates=ANOMALIES.slice(0,state.depth>=5?ANOMALIES.length:6);
+    signal(candidates[Math.floor(Math.random()*candidates.length)]);
+  }
+  const base=[30000,27000,24000,21000,18000,15000,11500][state.depth-1]||24000;
+  setTimeout(rareEvent,base+Math.random()*base);
+}
+
+function corruptText(s){
+  if(!s)return "";
+  const glyphs=["█","░","▒","/","_","?","•"];
+  return s.split("").map(ch=>{
+    if(ch===" "||Math.random()>.12)return ch;
+    return glyphs[Math.floor(Math.random()*glyphs.length)];
+  }).join("");
+}
+
+function cardAnomaly(p,index){
+  if(state.depth<3)return "";
+  const bad=(index+fileCode(p.id).length)%7===0;
+  if(state.depth>=5&&bad)return `<span class="status-chip archive-corrupt">FILE STATUS: CORRUPTED</span>`;
+  if(bad)return `<span class="status-chip">SOURCE UNKNOWN</span>`;
+  return "";
+}
+
+function card(p,index){
+  const saved=state.saved.includes(p.id);
+  const archiveLabel=p.access==="PROTECTED_ARCHIVE"?"CLASSIFIED":p.access==="FREE_ARCHIVE"?"RECOVERED":"PUBLIC";
+  return `<article class="card" data-id="${esc(p.id)}">
+    <div class="card-visual">
+      ${p.cover_url?`<img src="${esc(p.cover_url)}" alt="" loading="lazy" onerror="this.remove()">`:""}
+      <div class="card-fog"></div><div class="card-vhs"></div>
+      <div class="card-status">
+        <span class="status-chip">${archiveLabel}</span>${cardAnomaly(p,index)}
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-tag">${esc(p.category||"UNKNOWN")}</div>
+      <h3>${esc(p.title)}</h3>
+      <p>${esc(p.description||"")}</p>
+      <div class="card-meta">
+        <span>FILE ${fileCode(p.id)} · ${state.viewed.includes(p.id)?"SEEN":"UNSEEN"}</span>
+        <button class="save-mini ${saved?"saved":""}" data-save="${esc(p.id)}" aria-label="${saved?"Remove from saved":"Save discovery"}">${saved?"♥":"♡"}</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+function render(){
+  document.body.classList.remove(...[1,2,3,4,5,6,7].map(x=>"depth-"+x));
+  document.body.classList.add("depth-"+state.depth);
+  const body=state.view==="archive"?archive():state.view==="saved"?saved():state.view==="settings"?settings():home();
+  app.innerHTML=`
+    <header class="top">
+      <div class="logo">D<b>E</b>ATH</div>
+      <div class="top-actions">
+        <button class="btn hide-mobile" id="random">⤨ RANDOM</button>
+        <button class="btn icon" id="pulse" aria-label="Trigger atmosphere">◌</button>
+      </div>
+    </header>
+    <main class="page">
+      <div class="archive-strip">
+        <span class="archive-mono">RECOVERED NETWORK // ${nowStamp()}</span>
+        <span class="archive-mono archive-depth">DEPTH <strong>${String(state.depth).padStart(2,"0")}</strong>/07 · ${esc(depthName())}</span>
+        <span id="anomalyLabel" class="archive-mono archive-corrupt">${state.depth>=5?"ARCHIVE INTEGRITY: UNCERTAIN":"SIGNAL STABLE"}</span>
+      </div>
+      ${body}
+    </main>`;
+  wire();
+}
+
+function heroPost(){return state.posts.find(p=>p.video_url)||state.posts[0]||null}
+
+function home(){
+  const cats=["All","TRUE CRIME","PARANORMAL","PSYCHOLOGICAL","UNEXPLAINED","HORROR","MYSTERY","OTHER"];
+  const a=filtered(),f=heroPost();
+  return `<section class="hero">
+    ${f?.video_url?`<video class="hero-media" src="${esc(f.video_url)}" autoplay muted loop playsinline preload="metadata"></video>`:""}
+    <div class="hero-shade"></div><div class="hero-scan"></div>
+    <div class="hero-content">
+      <div class="eyebrow">${state.depth>=6?"DEEP ARCHIVE // DO NOT ASSUME SAFE":"A discovery experience for the dark"}</div>
+      <h1>WELCOME TO<br>DEATH.</h1>
+      <p>${state.depth>=5?"Something changed after you went deeper. The archive is no longer behaving like a passive collection.":"Real discoveries from DEATH Studio. No fake bundled stories. Published material becomes part of the archive."}</p>
+      <div class="hero-meta">
+        <span class="badge">${state.depth>=6?"DEEP / UNKNOWN":depthName()}</span>
+        <span class="badge">${a.length} SIGNAL${a.length===1?"":"S"}</span>
+        ${state.depth>=4?'<span class="badge red">ARCHIVE INTEGRITY: UNCERTAIN</span>':""}
+      </div>
+      <div class="row">
+        <button class="btn primary" id="randomHero">GIVE ME SOMETHING ↗</button>
+        ${f?'<button class="btn" id="openFeatured">OPEN SIGNAL</button>':""}
+      </div>
+    </div>
+  </section>
+
+  <div class="story-line ${state.depth>=4?"live":""}"><span class="story-dot"></span><div class="story-copy"><b>${state.depth>=5?"USER ACTIVITY DETECTED":"SIGNAL DETECTED"}</b> · ${state.depth>=7?"SOURCE UNKNOWN":state.depth>=4?"ARCHIVE INTEGRITY: UNCERTAIN":"ARCHIVE NETWORK ONLINE"}</div></div>
+
+  <div class="searchbar"><input class="search" id="search" placeholder="Search the archive..." value="${esc(state.q)}" autocomplete="off"><button class="btn" id="clearSearch">CLEAR</button></div>
+  <div class="filters">${cats.map(c=>`<button class="chip ${c===state.cat?"active":""}" data-cat="${esc(c)}">${esc(c)}</button>`).join("")}</div>
+
+  <div class="section-head"><div><h2>${state.depth>=6?"DEEP ARCHIVE":"ALL DISCOVERIES"}</h2><p>${state.depth>=7?"The files below are not guaranteed to be what they appear.":"Every published signal from DEATH Studio."}</p></div></div>
+  ${a.length?`<div class="grid">${a.map((p,i)=>card(p,i)).join("")}</div>`:`<div class="empty"><div style="font-size:34px">◉</div><h3>NO SIGNAL</h3><p>The archive is silent. Publish real content from DEATH Studio and the signal will appear here.</p></div>`}
+
+  <div class="recovered">
+    <strong>RECOVERED NOTE //</strong> FILE ${String(Math.floor(Math.random()*99999)+1).padStart(5,"0")} · SOURCE <span class="redaction">UNKNOWN</span> · TIMESTAMP ${nowStamp()}<br>
+    <span class="anomaly-text" id="noteAnomaly">${state.depth>=5?"ARCHIVE HAS RECORDED YOUR PRESENCE.":"NOTHING UNUSUAL DETECTED."}</span>
+  </div>`;
+}
+
+function archive(){
+  const archivePosts=state.posts.filter(p=>p.access==="FREE_ARCHIVE"||p.access==="PROTECTED_ARCHIVE");
+  return `<div class="section-head"><div><h2>FORBIDDEN ARCHIVE</h2><p>Recovered, preserved and access-controlled material.</p></div></div>
+    <div class="empty-archive">
+      <div class="archive-row"><span class="file">ARCHIVE / INDEX / 00000</span><span class="status">RECOVERED</span></div>
+      ${archivePosts.length?archivePosts.slice(0,20).map(p=>`<div class="archive-row" data-id="${esc(p.id)}"><span class="file">FILE ${fileCode(p.id)} · ${esc(p.title)}</span><span class="status ${p.access==="PROTECTED_ARCHIVE"?"archive-corrupt":""}">${p.access==="PROTECTED_ARCHIVE"?"CLASSIFIED": "RECOVERED"}</span></div>`).join(""):`<div class="archive-row"><span class="file">NO ADDITIONAL FILES AVAILABLE</span><span class="status">LISTENING</span></div>`}
+    </div>
+    <div class="recovered">DEPTH ${String(state.depth).padStart(2,"0")}/07 · ${esc(depthName())}<br><span class="anomaly-text">${state.depth>=6?"RESTRICTED FILES PRESENT // SOURCE UNKNOWN":"ARCHIVE INTEGRITY NOMINAL"}</span></div>`;
+}
+
+function saved(){
+  const a=filtered();
+  return `<div class="section-head"><div><h2>SAVED</h2><p>Your private collection of discoveries.</p></div></div>
+  ${a.length?`<div class="grid">${a.map((p,i)=>card(p,i)).join("")}</div>`:`<div class="empty"><h3>NOTHING SAVED</h3><p>Save a discovery to keep it here.</p></div>`}`;
+}
+
+function settings(){
+  return `<div class="section-head"><div><h2>SETTINGS</h2><p>Control the DEATH experience.</p></div></div>
+    <div class="detail-grid">
+      <div class="detail"><strong>ATMOSPHERE</strong><span>${state.audio?"ENABLED":"MUTED"}</span><button class="btn" id="soundToggle" style="margin-top:9px">${state.audio?"Mute":"Enable"} soundtrack</button></div>
+      <div class="detail"><strong>DEPTH</strong><span>${String(state.depth).padStart(2,"0")} / 07 · ${depthName()}</span></div>
+      <div class="detail"><strong>SAVED</strong><span>${state.saved.length}</span></div>
+      <div class="detail"><strong>SEEN</strong><span>${state.viewed.length}</span></div>
+    </div>
+    
+<div class="settings-card">
+  <div class="eyebrow">ARCHIVE FILE // 00001</div>
+  <h3>ABOUT DEATH</h3>
+  <p>DEATH is a cinematic digital archive built to explore the hidden and unknown corners of our universe — mysteries, recovered recordings, unexplained discoveries and stories that may still be waiting in the dark.</p>
+  <p><strong>The unknown is not empty. We just haven't found it yet.</strong></p>
+  <button class="btn" id="aboutOpen">Open archive dossier</button>
+</div>
+
+<div class="settings-card"><h3>FORBIDDEN ARCHIVE MODE</h3><p>The deeper you explore, the more the interface can become unstable. Effects remain intentionally rare.</p><button class="btn" id="pulseSettings">Trigger signal anomaly</button></div>
+    <div class="settings-card"><h3>LOCAL MEMORY</h3><p>Saved items, viewed state, depth and resume positions are stored locally on this device.</p><button class="btn" id="clearLocal">Clear local memory</button></div>
+  `;
+}
+
+async function api(url,opt={}){
+  try{
+    const headers={"Content-Type":"application/json",...(opt.headers||{})};
+    const r=await fetch(url,{...opt,headers});
+    const j=r.status===204?null:await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(j?.error||"REQUEST_FAILED");
+    return j;
+  }catch(e){
+    if(e instanceof TypeError)throw new Error("NETWORK");
+    throw e;
+  }
+}
+
+function rememberViewed(id){
+  if(!state.viewed.includes(id)){
+    state.viewed=[...state.viewed,id];
+    save(KEYS.viewed,state.viewed);
+    advanceDepth("viewed");
+  }
+}
+
+function toggleSave(id,redraw=true){
+  state.saved=state.saved.includes(id)?state.saved.filter(x=>x!==id):[...state.saved,id];
+  save(KEYS.saved,state.saved);
+  if(redraw)render();
+  toast(state.saved.includes(id)?"FILE SAVED":"FILE REMOVED");
+}
+
+function resumeKey(id){return KEYS.resume+":"+id}
+
+function stopViewerVideo(){
+  if(state.currentVideo){
+    try{state.currentVideo.pause();state.currentVideo.removeAttribute("src");state.currentVideo.load()}catch{}
+  }
+  state.currentVideo=null;
+}
+
+function closeAnyModal(){
+  const m=state.modal||document.querySelector(".modal");
+  if(m){stopViewerVideo();m.remove()}
+  state.modal=null;state.currentId=null;
+  document.body.classList.remove("no-scroll");
+}
+
+function openPost(id){
+  let p=state.posts.find(x=>x.id===id);if(!p)return;
+  rememberViewed(id);
+  setDepth(Math.max(state.depth,p.access==="PROTECTED_ARCHIVE"?6:state.depth));
+  if(p.access==="PROTECTED_ARCHIVE"){
+    const code=prompt("CLASSIFIED FILE // ACCESS CODE:");
+    if(!code)return;
+    api("/api/posts/"+encodeURIComponent(id)+"/access",{method:"POST",body:JSON.stringify({passcode:code})})
+      .then(full=>openViewer(full))
+      .catch(e=>toast(e.message==="Access denied."?"ACCESS DENIED":"ACCESS VERIFICATION FAILED"));
+    return;
+  }
+  openViewer(p);
+}
+
+function openViewer(p){
+  closeAnyModal();
+  state.currentId=p.id;
+  document.body.classList.add("no-scroll");
+  const resume=Number(load(resumeKey(p.id),0)||0);
+  const file=fileCode(p.id);
+  const corrupt=state.depth>=5&&(parseInt(file,10)%4===0);
+  const m=document.createElement("div");m.className="modal";
+  state.modal=m;
+  m.innerHTML=`<div class="modalbox" role="dialog" aria-modal="true" aria-label="${esc(p.title)}">
+    <div class="modal-top">
+      <span class="archive-mono">FILE ${file} // ${state.depth>=6?"RESTRICTED":"RECOVERED"}</span>
+      <button class="close" id="closeModal" aria-label="Close">✕</button>
+    </div>
+    <div class="eyebrow">${esc(p.category||"UNKNOWN")}</div>
+    <h2 style="font-size:31px;line-height:1.05;margin:7px 0">${esc(p.title)}</h2>
+    <div class="hero-meta"><span class="badge">${esc((p.access||"PUBLIC").replaceAll("_"," "))}</span><span class="badge">${nowStamp()}</span>${corrupt?'<span class="badge red">FILE STATUS: CORRUPTED</span>':""}</div>
+    ${p.content_warning?`<div class="warning">⚠ ${esc(p.warning_text||"Sensitive content.")}</div>`:""}
+    <div id="decodeArea" class="decode">DECODING RECOVERED DATA...<strong>████░░░░░░</strong></div>
+    <div id="viewerBody" style="display:none">
+      ${p.video_url?`<div class="modal-media"><video id="detailVideo" src="${esc(p.video_url)}" controls playsinline preload="metadata"></video></div><div class="modal-progress"><b id="watchProgress"></b></div><div class="progress-copy" id="resumeText">${resume>0?"RESUME POINT DETECTED":"FRESH FILE ACCESS"}</div>`:p.cover_url?`<div class="modal-media"><img src="${esc(p.cover_url)}" alt=""></div>`:""}
+      ${corrupt?'<div class="corrupt-note">FILE STATUS: CORRUPTED // DECODING MAY BE INCOMPLETE</div>':""}
+      <p class="modal-copy">${esc(p.description||"")}</p>
+      <div class="detail-grid">
+        <div class="detail"><strong>SOURCE</strong><span>UNKNOWN / <span class="redaction">REDACTED</span></span></div>
+        <div class="detail"><strong>FILE</strong><span>${file} // RECOVERED</span></div>
+        <div class="detail"><strong>ARCHIVE DEPTH</strong><span>${String(state.depth).padStart(2,"0")} / 07</span></div>
+        <div class="detail"><strong>INTEGRITY</strong><span>${corrupt?"UNCERTAIN":"NOMINAL"}</span></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="saveDetail">${state.saved.includes(p.id)?"♥ SAVED":"♡ SAVE"}</button>
+        <button class="btn" id="seenDetail">MARK SEEN</button>
+      </div>
+    </div>
+  </div>`;
+
+  document.body.appendChild(m);
+  m.addEventListener("click",e=>{if(e.target===m)closeAnyModal()});
+  m.querySelector("#closeModal").onclick=closeAnyModal;
+
+  setTimeout(()=>{
+    if(!state.modal)return;
+    const d=m.querySelector("#decodeArea"),v=m.querySelector("#viewerBody");
+    d.style.display="none";v.style.display="block";
+    const video=m.querySelector("#detailVideo");
+    state.currentVideo=video;
+    if(video){
+      video.addEventListener("loadedmetadata",()=>{
+        if(resume>2&&resume<video.duration-5)video.currentTime=resume;
+      });
+      video.addEventListener("timeupdate",()=>{
+        const t=video.currentTime||0;
+        save(resumeKey(p.id),Math.floor(t));
+        const pct=video.duration?Math.min(100,(t/video.duration)*100):0;
+        const bar=m.querySelector("#watchProgress");if(bar)bar.style.width=pct+"%";
+        const tx=m.querySelector("#resumeText");if(tx)tx.textContent=pct?`WATCHED ${Math.floor(pct)}%`:"FRESH FILE ACCESS";
+      });
+      video.addEventListener("ended",()=>{save(resumeKey(p.id),0);signal("FILE PLAYBACK COMPLETE");toast("FILE COMPLETE")});
+      video.play().catch(()=>{});
+    }
+    m.querySelector("#saveDetail").onclick=()=>{toggleSave(p.id,false);m.querySelector("#saveDetail").textContent=state.saved.includes(p.id)?"♥ SAVED":"♡ SAVE";};
+    m.querySelector("#seenDetail").onclick=()=>{rememberViewed(p.id);toast("MARKED SEEN")};
+  },520);
+}
+
+function random(){
+  const a=filtered();
+  if(!a.length){toast("NO DISCOVERIES AVAILABLE");return}
+  const candidates=a.filter(x=>x.id!==state.currentId);
+  const list=candidates.length?candidates:a;
+  const p=list[Math.floor(Math.random()*list.length)];
+  signal("NEW DISCOVERY DETECTED");
+  openPost(p.id);
+}
+
+function pulse(){
+  const level=state.depth;
+  signal(level>=5?"USER ACTIVITY DETECTED":"SIGNAL DETECTED");
+  if(level>=4)advanceDepth("pulse");
+}
+
+function toast(msg){
+  let el=document.getElementById("deathToast");
+  if(!el){el=document.createElement("div");el.id="deathToast";el.style.cssText="position:fixed;left:50%;bottom:90px;transform:translateX(-50%);z-index:120;background:#111;border:1px solid #292929;border-radius:999px;padding:10px 13px;color:#fff;font:10px ui-monospace,SFMono-Regular,Menlo,monospace;max-width:calc(100% - 20px);text-align:center";document.body.appendChild(el)}
+  el.textContent=msg;el.style.opacity="1";clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.opacity="0",2400);
+}
+
+let ac=null,gain=null,osc1=null,osc2=null;
+function startAudio(){
+  if(!state.audio)return;
+  try{
+    if(!ac)ac=new(window.AudioContext||window.webkitAudioContext)();
+    if(ac.state==="suspended")ac.resume();
+    if(gain)return;
+    gain=ac.createGain();gain.gain.value=.012;gain.connect(ac.destination);
+    osc1=ac.createOscillator();osc1.type="sine";osc1.frequency.value=48.5;osc1.connect(gain);osc1.start();
+    osc2=ac.createOscillator();osc2.type="sine";osc2.frequency.value=52.2;osc2.connect(gain);osc2.start();
+  }catch{}
+}
+function updateAudio(){
+  audioPill.classList.toggle("live",state.audio);
+  audioLabel.textContent=state.audio?"DEATH AUDIO ON":"DEATH AUDIO OFF";
+  mute.textContent=state.audio?"🔊":"🔇";
+  if(gain)gain.gain.value=state.audio?.012:0;
+}
+function toggleAudio(){state.audio=!state.audio;save(KEYS.audio,state.audio);updateAudio();if(state.audio)startAudio();toast(state.audio?"AUDIO RESTORED":"AUDIO MUTED")}
+
+
+function openAbout(){
+  closeAnyModal();
+  document.body.classList.add("no-scroll");
+  const m=document.createElement("div");m.className="modal";state.modal=m;
+  m.innerHTML=`<div class="modalbox" role="dialog" aria-modal="true">
+    <div class="modal-top"><span class="archive-mono">RECOVERED DOSSIER // FILE 00001</span><button class="close" id="aboutClose" aria-label="Close">✕</button></div>
+    <div class="eyebrow">THE FORBIDDEN ARCHIVE</div>
+    <h2 style="font-size:34px;margin:8px 0">ABOUT DEATH</h2>
+    <div class="recovered"><strong>STATUS //</strong> ACTIVE<br><strong>STUDIO //</strong> KERVYRA STUDIOS<br><strong>CREATOR //</strong> EDWIN K. NGIGE</div>
+    <p class="modal-copy">DEATH is a cinematic digital archive built to explore the hidden and unknown corners of our universe — mysteries, unexplained discoveries, recovered recordings, psychological experiences and stories that may still be waiting in the dark.</p>
+    <p class="modal-copy"><b>The goal is not simply to scare.</b> DEATH is designed to make you investigate. The deeper you travel through the archive, the less certain the interface becomes.</p>
+    <div class="detail-grid">
+      <div class="detail"><strong>CREATOR</strong><span>Edwin K. Ngige</span></div>
+      <div class="detail"><strong>ROLE</strong><span>Founder & Creator</span></div>
+      <div class="detail"><strong>STUDIO</strong><span>Kervyra Studios</span></div>
+      <div class="detail"><strong>EXPERIENCE</strong><span>The Forbidden Archive</span></div>
+    </div>
+    <div class="settings-card"><div class="eyebrow">A NOTE FROM THE CREATOR</div>
+      <p style="color:#ddd;font-size:14px;line-height:1.8">“I didn't build DEATH to create another horror app. I built it to explore the hidden side of our universe — the unknown, the unexplained, and the things humanity has yet to discover.”</p>
+      <div class="archive-mono">— EDWIN K. NGIGE // FOUNDER & CREATOR</div>
+    </div>
+    <div class="settings-card"><div class="eyebrow">VISUAL PHILOSOPHY</div><p>Modern cinematic horror meets a forbidden digital archive: clean structure, deep darkness, recovered media, analog interference, unexplained details and restraint.</p></div>
+  </div>`;
+  document.body.appendChild(m);
+  m.querySelector("#aboutClose").onclick=closeAnyModal;
+  m.addEventListener("click",e=>{if(e.target===m)closeAnyModal()});
+}
+
+function wire(){
+  document.querySelectorAll(".nav button").forEach(b=>{b.classList.toggle("active",b.dataset.v===state.view);b.onclick=()=>setView(b.dataset.v)});
+  document.querySelectorAll("[data-id]").forEach(el=>el.onclick=e=>{if(e.target.closest("[data-save]"))return;openPost(el.dataset.id)});
+  document.querySelectorAll("[data-save]").forEach(b=>b.onclick=e=>{e.stopPropagation();toggleSave(b.dataset.save)});
+  document.querySelectorAll("[data-cat]").forEach(b=>b.onclick=()=>{state.cat=b.dataset.cat;save(KEYS.filter,state.cat);render()});
+  document.getElementById("search")?.addEventListener("input",e=>{state.q=e.target.value;render();const s=document.getElementById("search");if(s){s.focus();s.setSelectionRange(state.q.length,state.q.length)}});
+  document.getElementById("clearSearch")?.addEventListener("click",()=>{state.q="";render()});
+  document.getElementById("random")?.addEventListener("click",random);
+  document.getElementById("randomHero")?.addEventListener("click",random);
+  document.getElementById("openFeatured")?.addEventListener("click",()=>{const p=heroPost();if(p)openPost(p.id)});
+  document.getElementById("pulse")?.addEventListener("click",pulse);
+  document.getElementById("soundToggle")?.addEventListener("click",toggleAudio);
+  document.getElementById("pulseSettings")?.addEventListener("click",pulse);
+  document.getElementById("aboutOpen")?.addEventListener("click",openAbout);
+  document.getElementById("clearLocal")?.addEventListener("click",()=>{
+    if(confirm("Clear saved items, viewed state, depth and resume positions from this device?")){
+      localStorage.removeItem(KEYS.saved);localStorage.removeItem(KEYS.viewed);localStorage.removeItem(KEYS.depth);
+      Object.keys(localStorage).filter(k=>k.startsWith(KEYS.resume+":")).forEach(k=>localStorage.removeItem(k));
+      state.saved=[];state.viewed=[];state.depth=1;render();toast("LOCAL MEMORY CLEARED");
+    }
+  });
+}
+
+async function fetchPosts(){
+  try{
+    const posts=await api("/api/posts");
+    const known=load(KEYS.known,[]);
+    if(known.length&&posts.some(p=>!known.includes(p.id)))signal("NEW DISCOVERY DETECTED");
+    save(KEYS.known,posts.map(p=>p.id));
+    state.posts=Array.isArray(posts)?posts:[];
+    render();
+  }catch{
+    state.posts=[];
+    render();
+    toast("SIGNAL UNAVAILABLE");
+  }
+}
+
+mute.onclick=toggleAudio;
+["pointerdown","keydown","touchstart"].forEach(x=>addEventListener(x,startAudio,{once:true,passive:true}));
+addEventListener("online",()=>{toast("SIGNAL RESTORED");fetchPosts()});
+addEventListener("offline",()=>toast("SIGNAL LOST // OFFLINE"));
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&state.modal)closeAnyModal()});
+document.addEventListener("visibilitychange",()=>{if(document.hidden&&state.currentVideo)state.currentVideo.pause()});
+
+function scheduleAnomaly(){
+  if(document.hidden){setTimeout(scheduleAnomaly,12000);return}
+  const p=[.02,.045,.07,.10,.14,.18,.23][state.depth-1];
+  if(Math.random()<p){
+    const allowed=state.depth>=6?ANOMALIES:ANOMALIES.slice(0,6);
+    signal(allowed[Math.floor(Math.random()*allowed.length)]);
+  }
+  const base=[30000,28000,25000,22000,19000,16000,12500][state.depth-1];
+  setTimeout(scheduleAnomaly,base+Math.random()*base);
+}
+
+setInterval(()=>{
+  if(document.hidden)return;
+  if(state.depth>=4&&Math.random()<0.05){
+    const n=document.getElementById("noteAnomaly");
+    if(n){n.textContent=corruptText(n.textContent||"ARCHIVE INTEGRITY: UNCERTAIN");setTimeout(()=>{if(n)n.textContent=state.depth>=5?"ARCHIVE HAS RECORDED YOUR PRESENCE.":"NOTHING UNUSUAL DETECTED."},450)}
+  }
+},18000);
+
+updateAudio();
+fetchPosts();
+render();
+setTimeout(scheduleAnomaly,11000);
+</script>
+
+<script>
+(function(){
+  const loader=document.getElementById("deathLoader"),status=document.getElementById("loaderStatus"),data=document.getElementById("loaderData"),bar=document.getElementById("loaderProgress"),pct=document.getElementById("loaderPercent"),quote=document.getElementById("loaderQuote");
+  if(!loader||!status||!data||!bar||!pct)return;
+  const returning=localStorage.getItem("death_loader_seen")==="1",duration=returning?1200:3600,start=performance.now();
+  const phases=[
+    ["SEARCHING THE KNOWN UNIVERSE...","KNOWN DATA ................. SCANNING"],
+    ["KNOWN DATA ................ COMPLETE","MAPPED REGIONS ............ COMPLETE"],
+    ["SEARCHING BEYOND KNOWN SPACE...","UNIDENTIFIED OBJECTS ...... 1,847"],
+    ["UNMAPPED REGION DETECTED","SOURCE .................... UNKNOWN"],
+    ["SEARCH COMPLETE","SOMETHING FOUND"]
+  ];
+  function frame(now){
+    const t=Math.min(1,(now-start)/duration),e=t*t*(3-2*t),phase=Math.min(phases.length-1,Math.floor(t*phases.length)),value=Math.floor(e*100);
+    status.textContent=phases[phase][0];data.textContent=phases[phase][1];bar.style.width=value+"%";pct.textContent=String(value).padStart(2,"0")+"%";
+    if(!returning&&t>.64&&!quote.classList.contains("show")){quote.innerHTML="<em>THE UNKNOWN IS NOT EMPTY.</em>WE JUST HAVEN'T FOUND IT YET.";quote.classList.add("show")}
+    if(t<1){requestAnimationFrame(frame);return}
+    status.textContent="ARCHIVE ACCESS GRANTED";data.textContent="DEATH // THE FORBIDDEN ARCHIVE";
+    setTimeout(()=>{loader.classList.add("is-gone");localStorage.setItem("death_loader_seen","1");setTimeout(()=>loader.remove(),650)},returning?80:500);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>

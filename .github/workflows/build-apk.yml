@@ -42,6 +42,7 @@ jobs:
         run: |
           ./gradlew assembleRelease \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/death-release-key.jks" \
+            -Pandroid.injected.signing.store.type="JKS" \
             -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
             -Pandroid.injected.signing.key.alias="death" \
             -Pandroid.injected.signing.key.password="$KEYSTORE_PASSWORD"

@@ -33,7 +33,8 @@ jobs:
         env:
           KEYSTORE_BASE64: ${{ secrets.DEATH_KEYSTORE_BASE64 }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > death-release-key.jks
+          printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > death-release-key.jks
+          keytool -list -keystore death-release-key.jks -storepass "${{ secrets.DEATH_KEYSTORE_PASSWORD }}" -alias death
 
       - name: Build signed APK
         working-directory: android

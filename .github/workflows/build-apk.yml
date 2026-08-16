@@ -29,19 +29,11 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Create release keystore
+      - name: Restore release keystore
         env:
-          KEYSTORE_PASSWORD: ${{ secrets.DEATH_KEYSTORE_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.DEATH_KEYSTORE_BASE64 }}
         run: |
-          keytool -genkeypair \
-            -alias death \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -keystore death-release-key.jks \
-            -storepass "$KEYSTORE_PASSWORD" \
-            -keypass "$KEYSTORE_PASSWORD" \
-            -dname "CN=Death, OU=DEATH, O=DEATH, L=Nairobi, ST=Nakuru, C=KE"
+          echo "$KEYSTORE_BASE64" | base64 -d > death-release-key.jks
 
       - name: Build signed APK
         working-directory: android

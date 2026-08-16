@@ -29,12 +29,19 @@ jobs:
       - name: Sync Capacitor
         run: npx cap sync android
 
-      - name: Decode signing key
+      - name: Create release keystore
         env:
-          KEYSTORE_BASE64: ${{ secrets.DEATH_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.DEATH_KEYSTORE_PASSWORD }}
         run: |
-          printf '%s' "$KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode > death-release-key.jks
-          keytool -list -keystore death-release-key.jks -storepass "${{ secrets.DEATH_KEYSTORE_PASSWORD }}" -alias death
+          keytool -genkeypair \
+            -alias death \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -keystore death-release-key.jks \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -keypass "$KEYSTORE_PASSWORD" \
+            -dname "CN=Death, OU=DEATH, O=DEATH, L=Nairobi, ST=Nakuru, C=KE"
 
       - name: Build signed APK
         working-directory: android

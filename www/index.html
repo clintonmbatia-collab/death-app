@@ -817,11 +817,7 @@ setTimeout(scheduleAnomaly,11000);
       setTimeout(()=>{loader.classList.add("is-gone");localStorage.setItem("death_loader_seen","1");setTimeout(()=>loader.remove(),650)},returning?80:500);
     }
   },80);
-  setTimeout(()=>{ if(loader && !loader.classList.contains("is-gone")){ clearInterval(tick); loader.classList.add("is-gone"); localStorage.setItem("death_loader_seen","1"); setTimeout(()=>loader.remove(),650); } }, 4000);return}
-    status.textContent="ARCHIVE ACCESS GRANTED";data.textContent="DEATH // THE FORBIDDEN ARCHIVE";
-    setTimeout(()=>{loader.classList.add("is-gone");localStorage.setItem("death_loader_seen","1");setTimeout(()=>loader.remove(),650)},returning?80:500);
-  }
-  requestAnimationFrame(frame);
+  setTimeout(()=>{ if(loader && !loader.classList.contains("is-gone")){ clearInterval(tick); loader.classList.add("is-gone"); localStorage.setItem("death_loader_seen","1"); setTimeout(()=>loader.remove(),650); } }, 4000);
 })();
 </script>
 

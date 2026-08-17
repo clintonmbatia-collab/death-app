@@ -251,7 +251,7 @@ const ANOMALIES=[
 let state={
   view:"home",q:"",cat:load(KEYS.filter,"All"),posts:[],
   saved:load(KEYS.saved,[]),viewed:load(KEYS.viewed,[]),
-  audio:load(KEYS.audio,false),depth:clamp(Number(load(KEYS.depth,1)),1,7),
+  audio:load(KEYS.audio,true),depth:clamp(Number(load(KEYS.depth,1)),1,7),
   currentId:null,currentVideo:null,modal:null
 };
 
@@ -797,7 +797,7 @@ setTimeout(scheduleAnomaly,11000);
 (function(){
   const loader=document.getElementById("deathLoader"),status=document.getElementById("loaderStatus"),data=document.getElementById("loaderData"),bar=document.getElementById("loaderProgress"),pct=document.getElementById("loaderPercent"),quote=document.getElementById("loaderQuote");
   if(!loader||!status||!data||!bar||!pct)return;
-  const returning=localStorage.getItem("death_loader_seen")==="1",duration=returning?1200:3600,start=performance.now();
+  const returning=localStorage.getItem("death_loader_seen")==="1",duration=returning?2200:4500,start=performance.now();
   const phases=[
     ["SEARCHING THE KNOWN UNIVERSE...","KNOWN DATA ................. SCANNING"],
     ["KNOWN DATA ................ COMPLETE","MAPPED REGIONS ............ COMPLETE"],
@@ -805,11 +805,19 @@ setTimeout(scheduleAnomaly,11000);
     ["UNMAPPED REGION DETECTED","SOURCE .................... UNKNOWN"],
     ["SEARCH COMPLETE","SOMETHING FOUND"]
   ];
-  function frame(now){
-    const t=Math.min(1,(now-start)/duration),e=t*t*(3-2*t),phase=Math.min(phases.length-1,Math.floor(t*phases.length)),value=Math.floor(e*100);
-    status.textContent=phases[phase][0];data.textContent=phases[phase][1];bar.style.width=value+"%";pct.textContent=String(value).padStart(2,"0")+"%";
+  bar.style.transition="width "+duration+"ms linear";
+  requestAnimationFrame(()=>{bar.style.width="100%"});
+  const tick=setInterval(()=>{
+    const now=performance.now(),t=Math.min(1,(now-start)/duration),e=t*t*(3-2*t),phase=Math.min(phases.length-1,Math.floor(t*phases.length)),value=Math.floor(e*100);
+    status.textContent=phases[phase][0];data.textContent=phases[phase][1];pct.textContent=String(value).padStart(2,"0")+"%";
     if(!returning&&t>.64&&!quote.classList.contains("show")){quote.innerHTML="<em>THE UNKNOWN IS NOT EMPTY.</em>WE JUST HAVEN'T FOUND IT YET.";quote.classList.add("show")}
-    if(t<1){requestAnimationFrame(frame);return}
+    if(t>=1){
+      clearInterval(tick);
+      status.textContent="ARCHIVE ACCESS GRANTED";data.textContent="DEATH // THE FORBIDDEN ARCHIVE";
+      setTimeout(()=>{loader.classList.add("is-gone");localStorage.setItem("death_loader_seen","1");setTimeout(()=>loader.remove(),650)},returning?80:500);
+    }
+  },80);
+  setTimeout(()=>{ if(loader && !loader.classList.contains("is-gone")){ clearInterval(tick); loader.classList.add("is-gone"); localStorage.setItem("death_loader_seen","1"); setTimeout(()=>loader.remove(),650); } }, 4000);return}
     status.textContent="ARCHIVE ACCESS GRANTED";data.textContent="DEATH // THE FORBIDDEN ARCHIVE";
     setTimeout(()=>{loader.classList.add("is-gone");localStorage.setItem("death_loader_seen","1");setTimeout(()=>loader.remove(),650)},returning?80:500);
   }

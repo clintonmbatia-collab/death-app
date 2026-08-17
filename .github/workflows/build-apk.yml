@@ -26,6 +26,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Copy web assets into www
+        run: |
+          cp index.html www/index.html
+          rm -rf www/audio
+          cp -r audio www/audio
+
       - name: Sync Capacitor
         run: npx cap sync android
 

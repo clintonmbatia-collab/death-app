@@ -528,7 +528,7 @@ function openPost(id){
   if(p.access==="PROTECTED_ARCHIVE"){
     const code=prompt("CLASSIFIED FILE // ACCESS CODE:");
     if(!code)return;
-    api("/api/posts/"+encodeURIComponent(id)+"/access",{method:"POST",body:JSON.stringify({passcode:code})})
+    api("https://death-server.onrender.com/api/posts/"+encodeURIComponent(id)+"/access",{method:"POST",body:JSON.stringify({passcode:code})})
       .then(full=>openViewer(full))
       .catch(e=>toast(e.message==="Access denied."?"ACCESS DENIED":"ACCESS VERIFICATION FAILED"));
     return;
@@ -739,7 +739,7 @@ function wire(){
 
 async function fetchPosts(){
   try{
-    const posts=await api("/api/posts");
+    const posts=await api("https://death-server.onrender.com/api/posts");
     const known=load(KEYS.known,[]);
     if(known.length&&posts.some(p=>!known.includes(p.id)))signal("NEW DISCOVERY DETECTED");
     save(KEYS.known,posts.map(p=>p.id));
